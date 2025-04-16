@@ -1,7 +1,10 @@
+import com.google.protobuf.gradle.proto
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.protobuf)
 }
 
 android {
@@ -37,8 +40,33 @@ android {
     buildFeatures {
         compose = true
     }
+
+    sourceSets {
+        named("main") {
+            proto {
+                srcDir("$rootDir/shared-proto")
+            }
+        }
+    }
 }
 
+dependencies {
+    implementation(libs.protobuf.kotlin.lite)
+}
+
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:4.28.2"
+    }
+    generateProtoTasks {
+        all().forEach { task ->
+            task.builtins {
+                // tell proto plugin to generate Kotlin
+                create("kotlin")
+            }
+        }
+    }
+}
 dependencies {
 
     implementation(libs.androidx.core.ktx)
@@ -49,6 +77,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.protobuf.kotlin)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
