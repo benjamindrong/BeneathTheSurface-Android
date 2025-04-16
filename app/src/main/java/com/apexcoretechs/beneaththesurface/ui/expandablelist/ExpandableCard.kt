@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -50,7 +51,7 @@ fun ExpandableCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = item.title,
+                text = "${item.text} - ${item.year}",
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.weight(1f)
             )
@@ -64,12 +65,19 @@ fun ExpandableCard(
 
         AnimatedVisibility(visible = item.isExpanded) {
             Column(modifier = Modifier.padding(top = 8.dp)) {
-                item.children.forEach { child ->
-                    Text(
-                        text = child,
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(start = 8.dp, top = 4.dp)
-                    )
+                // Page titles as clickable, pageable items
+                LazyColumn(modifier = Modifier.fillMaxWidth()) {
+                    items(item.children.size) { index ->
+                        Text(
+                            text = item.children[index],
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier
+                                .clickable {
+                                    // Handle page click, could navigate or show more content
+                                }
+                                .padding(start = 8.dp, top = 4.dp)
+                        )
+                    }
                 }
             }
         }

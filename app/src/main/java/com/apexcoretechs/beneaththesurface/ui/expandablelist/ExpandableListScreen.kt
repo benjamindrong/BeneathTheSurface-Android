@@ -12,19 +12,19 @@ import com.apexcoretechs.beneaththesurface.viewmodel.ExpandableListViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 
 
-@Composable
-fun ExpandableListScreen(viewModel: ExpandableListViewModel = viewModel()) {
-    val state by viewModel.state.collectAsState()
-
-    LazyColumn(modifier = Modifier
-        .fillMaxSize()
-        .padding(16.dp)) {
-
-        items(state.items.size) { index ->
-            ExpandableCard(item = state.items[index]) {
-                viewModel.onItemToggle(index)
-            }
-        }
-    }
-}
+//@Composable
+//fun ExpandableListScreen(viewModel: ExpandableListViewModel = viewModel()) {
+//    val state by viewModel.state.collectAsState()
+//
+//    LazyColumn(modifier = Modifier
+//        .fillMaxSize()
+//        .padding(16.dp)) {
+//
+//        items(state.items.size) { index ->
+//            ExpandableCard(item = state.items[index]) {
+//                viewModel.onItemToggle(index)
+//            }
+//        }
+//    }
+//}
 
