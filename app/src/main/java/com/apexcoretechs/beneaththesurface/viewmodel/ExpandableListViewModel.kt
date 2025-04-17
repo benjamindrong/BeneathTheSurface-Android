@@ -48,9 +48,9 @@ class ExpandableListViewModel : ViewModel() {
             }
 
             ExpandableItem(
-                text = selected.text,
+                title = selected.text,
                 year = selected.year.toString(),
-                children = children
+                pages = selected.pages
             )
         }
 

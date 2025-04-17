@@ -1,8 +1,8 @@
 package com.apexcoretechs.beneaththesurface.model
 
 data class ExpandableItem(
-    val text: String,
+    val title: String,
     val year: String,
-    val children: List<String>,
+    val pages: List<Page>,
     var isExpanded: Boolean = false
 )
