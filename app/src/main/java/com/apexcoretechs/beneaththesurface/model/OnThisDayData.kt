@@ -1,6 +1,8 @@
 package com.apexcoretechs.beneaththesurface.model
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 interface IShop {
     val route: String
@@ -12,43 +14,20 @@ data class OnThisDayData(
     @Transient val timestamp: Long = 0,
     @Transient val formMonth: String = "00",
     @Transient val formDay: String = "00"
-): IShop {
+) : IShop {
     companion object {
         const val getRoute = "/onThisDay"
         const val fullUrl = "https://en.wikipedia.org/api/rest_v1/feed/onthisday/selected"
     }
+
     override val route: String
         get() = getRoute
 }
 
+@Serializable
 data class OnThisDayRequest(
     val month: Int,
     val day: Int
-)
-
-@Serializable
-data class Page(
-    val content_urls: ContentUrls? = null,
-    val coordinates: Coordinates? = null,
-    val description: String? = null,
-    val description_source: String? = null,
-    val dir: String? = null,
-    val displaytitle: String? = null,
-    val extract: String? = null,
-    val extract_html: String? = null,
-    val lang: String? = null,
-    val namespace: Namespace? = null,
-    val normalizedtitle: String? = null,
-    val originalimage: Originalimage? = null,
-    val pageid: Int? = null,// Article identifier
-    val revision: String? = null,
-    val thumbnail: Thumbnail? = null,
-    val tid: String? = null, // Time-based UUID used for rendering content changes
-    val timestamp: String? = null,
-    val title: String? = null,
-    val titles: Titles? = null,
-    val type: String? = null,
-    val wikibase_item: String? = null
 )
 
 @Serializable
@@ -59,17 +38,44 @@ data class Selected(
 )
 
 @Serializable
+data class Page(
+    @SerialName("content_urls") val contentUrls: ContentUrls? = null,
+    val coordinates: Coordinates? = null,
+    val description: String? = null,
+    @SerialName("description_source") val descriptionSource: String? = null,
+    val dir: String? = null,
+    val displaytitle: String? = null,
+    val extract: String? = null,
+    @SerialName("extract_html") val extractHtml: String? = null,
+    val lang: String? = null,
+    val namespace: Namespace? = null,
+    val normalizedtitle: String? = null,
+    val originalimage: Originalimage? = null,
+    val pageid: Int? = null,
+    val revision: String? = null,
+    val thumbnail: Thumbnail? = null,
+    val tid: String? = null,
+    val timestamp: String? = null,
+    val title: String? = null,
+    val titles: Titles? = null,
+    val type: String? = null,
+    @SerialName("wikibase_item") val wikibaseItem: String? = null
+)
+
+@Serializable
 data class ContentUrls(
     val desktop: Desktop? = null,
     val mobile: Mobile? = null
 )
 
-@Serializable class Namespace(
+@Serializable
+data class Namespace(
     val id: Int,
     val text: String
 )
 
-@Serializable class Thumbnail(
+@Serializable
+data class Thumbnail(
     val height: Int,
     val source: String,
     val width: Int
@@ -83,25 +89,29 @@ data class Desktop(
     val talk: String? = null
 )
 
-@Serializable class Mobile(
+@Serializable
+data class Mobile(
     val edit: String? = null,
     val page: String? = null,
     val revisions: String? = null,
     val talk: String? = null
 )
 
-@Serializable class Titles(
+@Serializable
+data class Titles(
     val canonical: String,
     val display: String,
     val normalized: String
 )
 
-@Serializable data class Coordinates(
+@Serializable
+data class Coordinates(
     val lat: Double? = null,
     val lon: Double? = null
 )
 
-@Serializable class Originalimage(
+@Serializable
+data class Originalimage(
     val height: Int,
     val source: String,
     val width: Int
