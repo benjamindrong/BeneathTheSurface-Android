@@ -14,21 +14,6 @@ class ExpandableListViewModel : ViewModel() {
     private val _state = MutableStateFlow(ExpandableListState())
     val state: StateFlow<ExpandableListState> = _state
 
-//    init {
-//        val parsed = Json.decodeFromString<OnThisDayData>(json)
-//
-//        val items = parsed.selected.map { selected ->
-//            val children = selected.pages.map { page ->
-//                "${page.title ?: "Untitled"} - ${page.extract ?: "No description"}"
-//            }
-//            ExpandableItem(
-//                title = selected.year?.toString() ?: "Unknown Year",
-//                children = children
-//            )
-//        }
-//        _state.value = ExpandableListState(items = items)
-//    }
-
     fun onItemToggle(index: Int) {
         val updated = _state.value.items.mapIndexed { i, item ->
             if (i == index) item.copy(isExpanded = !item.isExpanded) else item

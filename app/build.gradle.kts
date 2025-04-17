@@ -38,6 +38,14 @@ android {
     buildFeatures {
         compose = true
     }
+    sourceSets {
+        getByName("test") {
+            resources.srcDir("src/sharedTestResources")
+        }
+        getByName("androidTest") {
+            assets.srcDir("src/sharedTestResources")
+        }
+    }
 }
 
 dependencies {
@@ -55,6 +63,8 @@ dependencies {
     implementation(libs.compose.foundation)
     implementation(libs.coil.compose)
     testImplementation(libs.junit)
+    testImplementation(libs.kotlin.test)
+    testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
