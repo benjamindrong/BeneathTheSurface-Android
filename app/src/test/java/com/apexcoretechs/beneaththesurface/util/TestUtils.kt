@@ -1,4 +1,4 @@
-package com.apexcoretechs.beneaththesurface.viewmodel
+package com.apexcoretechs.beneaththesurface.util
 
 fun loadTestJson(fileName: String): String {
     return object {}.javaClass.classLoader!!
