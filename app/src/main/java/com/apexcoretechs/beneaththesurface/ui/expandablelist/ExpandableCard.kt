@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -41,10 +40,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.window.Dialog
 import coil.compose.AsyncImage
 
@@ -149,24 +146,29 @@ fun ExpandableCard(
 
 // Fullscreen Dialog
                         if (showFullScreen) {
-                            Dialog(onDismissRequest = { showFullScreen = false }) {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .background(Color.Black.copy(alpha = 0.9f))
-                                        .clickable { showFullScreen = false },
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    AsyncImage(
-                                        model = fullScreenImageUrl,
-                                        contentDescription = "Full image",
-                                        contentScale = ContentScale.Fit,
+                            @Composable
+                            fun imagePreviewDialog() {
+                                Dialog(onDismissRequest = { showFullScreen = false }) {
+                                    Box(
                                         modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(24.dp)
-                                    )
+                                            .fillMaxSize()
+                                            .background(Color.Black.copy(alpha = 0.9f))
+                                            .clickable { showFullScreen = false },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        AsyncImage(
+                                            model = fullScreenImageUrl,
+                                            contentDescription = "Full image",
+                                            contentScale = ContentScale.Fit,
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .padding(24.dp)
+                                        )
+                                    }
                                 }
                             }
+
+                            imagePreviewDialog()
                         }
 
 
