@@ -1,0 +1,43 @@
+📁 app/
+├── 📁 src/
+│   ├── 📁 androidTest/
+│   │   ├── 📁 java/com/apexcoretechs/beneaththesurface/
+│   │   │   ├── 📁 ui/
+│   │   │   │   └── ExpandableListUITest.kt
+│   │   │   ├── 📁 util/
+│   │   │   │   └── TestUtils.kt
+│   │   └── 📁 resources/
+│   │       └── on_this_day_test.json
+│   ├── 📁 main/
+│   │   ├── 📁 java/com/apexcoretechs/beneaththesurface/
+│   │   │   ├── MainActivity.kt
+│   │   │   ├── 📁 model/
+│   │   │   │   │   ├── AIFormData.kt
+│   │   │   │   │   ├── ChatCompletionData.kt
+│   │   │   │   │   ├── ExpandableItem.kt
+│   │   │   │   │   └── OnThisDayData.kt
+│   │   │   ├── 📁 ui/
+│   │   │   │   ├── 📁 expandablelist/
+│   │   │   │   │   ├── ExpandableCard.kt
+│   │   │   │   │   ├── ExpandableListState.kt
+│   │   │   │   │   └── ExpandableListViewModel.kt
+│   │   │   │   ├── 📁 theme/
+│   │   │   │   │   ├── Color.kt
+│   │   │   │   │   ├── Theme.kt
+│   │   │   │   │   └── Type.kt
+│   │   │   ├── 📁 util/
+│   │   │   │   └── JsonUtils.kt  (loadJsonFromAssets function)
+│   │   ├── 📁 assets/
+│   │   │   └── on_this_day.json
+│   │   └── AndroidManifest.xml
+│
+│   ├── 📁 test/
+│   │   ├── 📁 java/com/apexcoretechs/beneaththesurface/
+│   │   │   ├── 📁 util/
+│   │   │   │   └── TestUtils.kt
+│   │   │   ├── 📁 viewmodel/
+│   │   │   │   └── expandablelist/
+│   │   │   │       └── ExpandableListViewModelTest.kt
+│
+├── build.gradle.kts
+└── settings.gradle.kts

@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -37,6 +38,14 @@ android {
     buildFeatures {
         compose = true
     }
+    sourceSets {
+        getByName("test") {
+            resources.srcDir("src/sharedTestResources")
+        }
+        getByName("androidTest") {
+            assets.srcDir("src/sharedTestResources")
+        }
+    }
 }
 
 dependencies {
@@ -50,7 +59,12 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.compose.foundation)
+    implementation(libs.coil.compose)
     testImplementation(libs.junit)
+    testImplementation(libs.kotlin.test)
+    testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
