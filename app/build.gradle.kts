@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId = "com.apexcoretechs.beneaththesurface"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 35
         versionCode = 1
         versionName = "0.1.0"
@@ -62,6 +62,11 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.compose.foundation)
     implementation(libs.coil.compose)
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+    implementation(libs.gson)
+    implementation(libs.coroutines.core)
+    implementation(libs.coroutines.android)
     testImplementation(libs.junit)
     testImplementation(libs.kotlin.test)
     testImplementation(libs.kotlinx.coroutines.test)

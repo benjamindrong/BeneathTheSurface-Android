@@ -1,6 +1,6 @@
 import com.apexcoretechs.beneaththesurface.model.OnThisDayData
 import com.apexcoretechs.beneaththesurface.ui.expandablelist.ExpandableListViewModel
-import com.apexcoretechs.beneaththesurface.viewmodel.loadTestJson
+import com.apexcoretechs.beneaththesurface.util.loadTestJson
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
