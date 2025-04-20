@@ -16,6 +16,12 @@
 │   │   │   │   │   ├── ChatCompletionData.kt
 │   │   │   │   │   ├── ExpandableItem.kt
 │   │   │   │   │   └── OnThisDayData.kt
+│   │   │   ├── 📁 network/
+│   │   │   │   ├── AIFormRepository.kt
+│   │   │   │   ├── AIFormService.kt
+│   │   │   │   ├── OnThisDayRepository.kt
+│   │   │   │   ├── OnThisDayService.kt
+│   │   │   │   ├── RetrofitInstance
 │   │   │   ├── 📁 ui/
 │   │   │   │   ├── 📁 expandablelist/
 │   │   │   │   │   ├── ExpandableCard.kt

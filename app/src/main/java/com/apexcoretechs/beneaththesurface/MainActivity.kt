@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -19,6 +21,7 @@ import com.apexcoretechs.beneaththesurface.ui.expandablelist.ExpandableCard
 import com.apexcoretechs.beneaththesurface.ui.theme.BeneathTheSurfaceTheme
 import com.apexcoretechs.beneaththesurface.ui.expandablelist.ExpandableListViewModel
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import com.apexcoretechs.beneaththesurface.ui.onthisday.OnThisDayForm
 import com.apexcoretechs.beneaththesurface.util.loadJsonFromAssets
 
@@ -27,34 +30,42 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             BeneathTheSurfaceTheme {
-                ExpandableListScreen()
+                CombinedHistoryScreen()
             }
         }
     }
 }
 
 @Composable
-fun ExpandableListScreen(viewModel: ExpandableListViewModel = viewModel()) {
-    val context = LocalContext.current
-    val state by viewModel.state.collectAsState()
+fun CombinedHistoryScreen(viewModel: ExpandableListViewModel = viewModel()) {
+    val uiState by viewModel.state.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
 
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        // 📅 Form at the top
-        item {
-            OnThisDayForm { day, month ->
-                viewModel.loadOnThisDayData(month, day)
+    Column(modifier = Modifier.fillMaxSize()) {
+        // Your existing form
+        OnThisDayForm(
+            onSubmit = { day, month ->
+                viewModel.loadCombinedHistory(month, day)
             }
-            Spacer(modifier = Modifier.padding(top = 16.dp))
+        )
+
+        if (isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(16.dp)
+            )
         }
 
-        // 🔽 Expandable cards
-        items(state.items.size) { index ->
-            ExpandableCard(item = state.items[index]) {
-                viewModel.onItemToggle(index)
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+        ) {
+            itemsIndexed(uiState.items) { index, item ->
+                ExpandableCard(
+                    item = item,
+                    onCardArrowClick = { viewModel.onItemToggle(index) }
+                )
             }
         }
     }
