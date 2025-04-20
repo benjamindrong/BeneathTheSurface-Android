@@ -75,11 +75,10 @@ fun ExpandableCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "${item.title} (${item.year})",
+                text = "${item.title} ${if (item.year.isBlank()) "" else "(${item.year})"}",
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.weight(1f)
             )
-
             Icon(
                 imageVector = Icons.Default.KeyboardArrowDown,
                 contentDescription = "Expand/Collapse",
@@ -126,7 +125,8 @@ fun ExpandableCard(
                                     .height(160.dp) // Thumbnail size
                                     .clickable {
                                         // On click, set the image for fullscreen
-                                        fullScreenImageUrl = page.originalimage?.source ?: imageUrl // Use originalImage or fallback
+                                        fullScreenImageUrl = page.originalimage?.source
+                                            ?: imageUrl // Use originalImage or fallback
                                         showFullScreen = true
                                     },
                                 contentAlignment = Alignment.Center

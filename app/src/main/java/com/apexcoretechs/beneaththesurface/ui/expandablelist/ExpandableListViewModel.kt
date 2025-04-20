@@ -9,6 +9,7 @@ import com.apexcoretechs.beneaththesurface.model.AIFormData
 import com.apexcoretechs.beneaththesurface.model.ExpandableItem
 import com.apexcoretechs.beneaththesurface.model.OnThisDayData
 import com.apexcoretechs.beneaththesurface.model.Page
+import com.apexcoretechs.beneaththesurface.network.AIFormRepository
 import com.apexcoretechs.beneaththesurface.network.OnThisDayRepository
 import com.apexcoretechs.beneaththesurface.network.RetrofitInstance
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,7 +22,8 @@ class ExpandableListViewModel : ViewModel() {
     private val _state = MutableStateFlow(ExpandableListState())
     val state: StateFlow<ExpandableListState> = _state
 
-    private val repository = OnThisDayRepository()
+    private val onThisDayRepository = OnThisDayRepository()
+    private val aiFormRepository = AIFormRepository()
 
     private val _onThisDayData = MutableLiveData<OnThisDayData>()
     val onThisDayData: LiveData<OnThisDayData> = _onThisDayData
@@ -29,7 +31,7 @@ class ExpandableListViewModel : ViewModel() {
     fun loadOnThisDayData(month: Int, day: Int) {
         viewModelScope.launch {
             try {
-                val result = repository.fetchOnThisDayData(month, day)
+                val result = onThisDayRepository.fetchOnThisDayData(month, day)
                 _onThisDayData.value = result
                 val items = result.selected.map { selected ->
                     ExpandableItem(
@@ -86,7 +88,7 @@ class ExpandableListViewModel : ViewModel() {
                 )
 
                 // Make the API call (use your actual networking layer here)
-                val chatCompletionData = RetrofitInstance.aiFormApi.submitForm(aiFormData)
+                val chatCompletionData = aiFormRepository.fetchOnThisDayData(aiFormData)
 
                 // Convert to ExpandableItem
                 val chatItem = ExpandableItem(
@@ -96,7 +98,7 @@ class ExpandableListViewModel : ViewModel() {
                 )
 
                 // Get historical data too
-                val result = repository.fetchOnThisDayData(month, day)
+                val result = onThisDayRepository.fetchOnThisDayData(month, day)
                 _onThisDayData.value = result
 
                 val items = result.selected.map {
@@ -121,7 +123,7 @@ class ExpandableListViewModel : ViewModel() {
     fun loadHistoryWithAI(month: Int, day: Int) {
         viewModelScope.launch {
             try {
-                val onThisDayResult = repository.fetchOnThisDayData(month, day)
+                val onThisDayResult = onThisDayRepository.fetchOnThisDayData(month, day)
 
                 val freeTextFormatted = "${month.toString().padStart(2, '0')}/${day.toString().padStart(2, '0')}"
                 val aiForm = AIFormData(
