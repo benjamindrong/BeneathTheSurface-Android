@@ -12,6 +12,7 @@ import com.apexcoretechs.beneaththesurface.model.Page
 import com.apexcoretechs.beneaththesurface.network.AIFormRepository
 import com.apexcoretechs.beneaththesurface.network.OnThisDayRepository
 import com.apexcoretechs.beneaththesurface.network.RetrofitInstance
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -75,6 +76,75 @@ class ExpandableListViewModel : ViewModel() {
     fun loadCombinedHistory(month: Int, day: Int) {
         viewModelScope.launch {
             _isLoading.value = true
+
+            val formattedDate = "${month.toString().padStart(2, '0')}/${day.toString().padStart(2, '0')}"
+            val aiFormData = AIFormData(
+                utcTimestamp = System.currentTimeMillis().toDouble(),
+                freeText = formattedDate,
+                month = month,
+                day = day,
+                date = formattedDate,
+                isFreeRide = true
+            )
+
+            var aiItem: ExpandableItem? = null
+            val historyItems = mutableListOf<ExpandableItem>()
+
+            val aiCall = async {
+                try {
+                    val chatCompletionData = aiFormRepository.fetchOnThisDayData(aiFormData)
+                    aiItem = ExpandableItem(
+                        title = "AI Insights",
+                        year = "",
+                        pages = listOf(
+                            Page(
+                                extract = chatCompletionData.choices.firstOrNull()?.message?.content ?: "No data",
+                                title = "AI Response"
+                            )
+                        )
+                    )
+                } catch (e: Exception) {
+                    Log.e("AIData", "Failed to fetch AI data", e)
+                }
+            }
+
+            val historyCall = async {
+                try {
+                    val result = onThisDayRepository.fetchOnThisDayData(month, day)
+                    _onThisDayData.value = result
+                    historyItems.addAll(
+                        result.selected.map {
+                            ExpandableItem(
+                                title = it.text,
+                                year = it.year.toString(),
+                                pages = it.pages
+                            )
+                        }
+                    )
+                } catch (e: Exception) {
+                    Log.e("OnThisDay", "Failed to fetch historical data", e)
+                }
+            }
+
+            // Await both results
+            aiCall.await()
+            historyCall.await()
+
+            // Combine with AI first
+            val combinedItems = mutableListOf<ExpandableItem>()
+            aiItem?.let { combinedItems.add(it) }
+            combinedItems.addAll(historyItems)
+
+            _state.value = ExpandableListState(items = combinedItems)
+            _isLoading.value = false
+        }
+    }
+
+
+
+    /*fun loadCombinedHistory(month: Int, day: Int) {
+        viewModelScope.launch {
+            _isLoading.value = true
             try {
                 val formattedDate = "${month.toString().padStart(2, '0')}/${day.toString().padStart(2, '0')}"
 
@@ -117,7 +187,7 @@ class ExpandableListViewModel : ViewModel() {
                 _isLoading.value = false
             }
         }
-    }
+    }*/
 
 
     fun loadHistoryWithAI(month: Int, day: Int) {
