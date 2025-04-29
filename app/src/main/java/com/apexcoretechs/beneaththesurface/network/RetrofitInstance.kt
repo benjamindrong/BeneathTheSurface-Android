@@ -5,7 +5,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitInstance {
     private const val ONTHISDAY_URL = "https://en.wikipedia.org/api/rest_v1/feed/"
-    private const val AIFORM_URL = "http://192.168.1.4:3003/"
+    private const val AIFORM_URL = "http://databridge.apexcoretechs.com:3003/"
 
     val onthisdayApi: OnThisDayService by lazy {
         Retrofit.Builder()
