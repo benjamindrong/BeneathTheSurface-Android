@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -40,10 +41,13 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.window.Dialog
 import coil.compose.AsyncImage
+import com.apexcoretechs.beneaththesurface.R
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -63,150 +67,170 @@ fun ExpandableCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
-            .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(12.dp))
             .shadow(2.dp, RoundedCornerShape(12.dp))
-            .padding(16.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.surface)
     ) {
-        // Header
-        Row(
+        // Inner Box for layering the background and card content
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { onCardArrowClick() },
-            verticalAlignment = Alignment.CenterVertically
+                .background(Color.Transparent) // Ensure transparency is respected
         ) {
-            Text(
-                text = "${item.title} ${if (item.year.isBlank()) "" else "(${item.year})"}",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.weight(1f)
+            // 🔹 Overlay image (partially transparent background inside card)
+            Image(
+                painter = painterResource(id = R.drawable.result_overlay),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                alpha = 0.25f,
+                modifier = Modifier
+                    .matchParentSize()
             )
-            Icon(
-                imageVector = Icons.Default.KeyboardArrowDown,
-                contentDescription = "Expand/Collapse",
-                modifier = Modifier.rotate(rotationAngle)
-            )
-        }
 
-        // Expanded content
-        AnimatedVisibility(visible = item.isExpanded) {
-            Column {
-                // Page indicator: "2 / 5"
-                Text(
-                    text = "${pagerState.currentPage + 1} / ${item.pages.size}",
-                    style = MaterialTheme.typography.labelMedium,
-                    modifier = Modifier
-                        .align(Alignment.CenterHorizontally)
-                        .padding(top = 8.dp)
-                )
-
-
-                // Pager
-                HorizontalPager(
-                    state = pagerState,
+            // 🔹 Card contents
+            Column(modifier = Modifier.padding(16.dp)) {
+                // Header
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(300.dp)
-                        .padding(vertical = 8.dp)
-                ) { pageIndex ->
-                    val page = item.pages[pageIndex]
+                        .clickable { onCardArrowClick() },
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "${item.title} ${if (item.year.isBlank()) "" else "(${item.year})"}",
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowDown,
+                        contentDescription = "Expand/Collapse",
+                        modifier = Modifier.rotate(rotationAngle)
+                    )
+                }
 
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .verticalScroll(rememberScrollState())
-                            .padding(8.dp)
-                    ) {
-                        var showFullScreen by remember { mutableStateOf(false) }
-                        var fullScreenImageUrl by remember { mutableStateOf("") }
+                // Expanded content
+                AnimatedVisibility(visible = item.isExpanded) {
+                    Column {
+                        // Page indicator: "2 / 5"
+                        Text(
+                            text = "${pagerState.currentPage + 1} / ${item.pages.size}",
+                            style = MaterialTheme.typography.labelMedium,
+                            modifier = Modifier
+                                .align(Alignment.CenterHorizontally)
+                                .padding(top = 8.dp)
+                        )
 
-                        page.thumbnail?.source?.let { imageUrl ->
-                            Box(
+
+                        // Pager
+                        HorizontalPager(
+                            state = pagerState,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(300.dp)
+                                .padding(vertical = 8.dp)
+                        ) { pageIndex ->
+                            val page = item.pages[pageIndex]
+
+                            Column(
                                 modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(160.dp) // Thumbnail size
-                                    .clickable {
-                                        // On click, set the image for fullscreen
-                                        fullScreenImageUrl = page.originalimage?.source
-                                            ?: imageUrl // Use originalImage or fallback
-                                        showFullScreen = true
-                                    },
-                                contentAlignment = Alignment.Center
+                                    .fillMaxSize()
+                                    .verticalScroll(rememberScrollState())
+                                    .padding(8.dp)
                             ) {
-                                AsyncImage(
-                                    model = imageUrl,
-                                    contentDescription = page.title ?: "Page thumbnail",
-                                    contentScale = ContentScale.Fit,
-                                    modifier = Modifier
-                                        .fillMaxHeight()
-                                        .padding(8.dp)
-                                )
-                            }
-                        }
+                                var showFullScreen by remember { mutableStateOf(false) }
+                                var fullScreenImageUrl by remember { mutableStateOf("") }
 
-                        Spacer(modifier = Modifier.height(12.dp))
-
-// Fullscreen Dialog
-                        if (showFullScreen) {
-                            @Composable
-                            fun imagePreviewDialog() {
-                                Dialog(onDismissRequest = { showFullScreen = false }) {
+                                page.thumbnail?.source?.let { imageUrl ->
                                     Box(
                                         modifier = Modifier
-                                            .fillMaxSize()
-                                            .background(Color.Black.copy(alpha = 0.9f))
-                                            .clickable { showFullScreen = false },
+                                            .fillMaxWidth()
+                                            .height(160.dp) // Thumbnail size
+                                            .clickable {
+                                                // On click, set the image for fullscreen
+                                                fullScreenImageUrl = page.originalimage?.source
+                                                    ?: imageUrl // Use originalImage or fallback
+                                                showFullScreen = true
+                                            },
                                         contentAlignment = Alignment.Center
                                     ) {
                                         AsyncImage(
-                                            model = fullScreenImageUrl,
-                                            contentDescription = "Full image",
+                                            model = imageUrl,
+                                            contentDescription = page.title ?: "Page thumbnail",
                                             contentScale = ContentScale.Fit,
                                             modifier = Modifier
-                                                .fillMaxSize()
-                                                .padding(24.dp)
+                                                .fillMaxHeight()
+                                                .padding(8.dp)
                                         )
                                     }
                                 }
-                            }
 
-                            imagePreviewDialog()
+                                Spacer(modifier = Modifier.height(12.dp))
+
+// Fullscreen Dialog
+                                if (showFullScreen) {
+                                    @Composable
+                                    fun imagePreviewDialog() {
+                                        Dialog(onDismissRequest = { showFullScreen = false }) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .background(Color.Black.copy(alpha = 0.9f))
+                                                    .clickable { showFullScreen = false },
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                AsyncImage(
+                                                    model = fullScreenImageUrl,
+                                                    contentDescription = "Full image",
+                                                    contentScale = ContentScale.Fit,
+                                                    modifier = Modifier
+                                                        .fillMaxSize()
+                                                        .padding(24.dp)
+                                                )
+                                            }
+                                        }
+                                    }
+
+                                    imagePreviewDialog()
+                                }
+
+
+                                // Page title
+                                Text(
+                                    text = page.title ?: "Untitled",
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+
+                                Spacer(modifier = Modifier.height(8.dp))
+
+                                // Page description/extract
+                                Text(
+                                    text = page.extract ?: "No description available.",
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            }
                         }
 
-
-                        // Page title
-                        Text(
-                            text = page.title ?: "Untitled",
-                            style = MaterialTheme.typography.titleMedium
-                        )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        // Page description/extract
-                        Text(
-                            text = page.extract ?: "No description available.",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-                }
-
-                // Dot indicators
-                Row(
-                    horizontalArrangement = Arrangement.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 4.dp)
-                ) {
-                    repeat(item.pages.size) { index ->
-                        val isSelected = pagerState.currentPage == index
-                        Box(
+                        // Dot indicators
+                        Row(
+                            horizontalArrangement = Arrangement.Center,
                             modifier = Modifier
-                                .size(8.dp)
-                                .padding(horizontal = 4.dp)
-                                .background(
-                                    color = if (isSelected) MaterialTheme.colorScheme.primary
-                                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
-                                    shape = CircleShape
+                                .fillMaxWidth()
+                                .padding(top = 4.dp)
+                        ) {
+                            repeat(item.pages.size) { index ->
+                                val isSelected = pagerState.currentPage == index
+                                Box(
+                                    modifier = Modifier
+                                        .size(8.dp)
+                                        .padding(horizontal = 4.dp)
+                                        .background(
+                                            color = if (isSelected) MaterialTheme.colorScheme.primary
+                                            else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
+                                            shape = CircleShape
+                                        )
                                 )
-                        )
+                            }
+                        }
                     }
                 }
             }
