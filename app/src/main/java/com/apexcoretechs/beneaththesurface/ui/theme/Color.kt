@@ -12,7 +12,8 @@ val PurpleGrey40 = Color(0xFF625b71)
 val BluePrimary = Color(0xFF0D47A1)
 val BluePrimaryDark = Color(0xFF002171)
 val DarkSlateBlue = Color(0xFF483D8B)
-
+val Ivory = Color(0xFFFFFFF0)
+val LightGrayBlueBackground = Color(0xFF8F8FA2)
 
 // Secondary: Burnt Orange
 val OrangeSecondary = Color(0xFFF57C00)
