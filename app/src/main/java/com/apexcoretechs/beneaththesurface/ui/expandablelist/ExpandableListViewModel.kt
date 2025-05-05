@@ -73,6 +73,9 @@ class ExpandableListViewModel : ViewModel() {
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
+    private val _isWaiting = MutableStateFlow(true)
+    val isWaiting: StateFlow<Boolean> = _isWaiting
+
     fun loadCombinedHistory(month: Int, day: Int) {
         viewModelScope.launch {
             _isLoading.value = true
@@ -136,6 +139,7 @@ class ExpandableListViewModel : ViewModel() {
             combinedItems.addAll(historyItems)
 
             _state.value = ExpandableListState(items = combinedItems)
+            _isWaiting.value = false
             _isLoading.value = false
         }
     }
