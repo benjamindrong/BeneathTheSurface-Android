@@ -80,7 +80,7 @@ class ExpandableListViewModel : ViewModel() {
         viewModelScope.launch {
             _isLoading.value = true
 
-            val formattedDate = "${month.toString().padStart(2, '0')}/${day.toString().padStart(2, '0')}"
+            val formattedDate = "$month/$day"
             val aiFormData = AIFormData(
                 utcTimestamp = System.currentTimeMillis().toDouble(),
                 freeText = formattedDate,
@@ -102,7 +102,7 @@ class ExpandableListViewModel : ViewModel() {
                         pages = listOf(
                             Page(
                                 extract = chatCompletionData.choices.firstOrNull()?.message?.content ?: "No data",
-                                title = "AI Response"
+//                                title = "AI Response"
                             )
                         )
                     )

@@ -112,13 +112,15 @@ fun ExpandableCard(
                 AnimatedVisibility(visible = item.isExpanded) {
                     Column {
                         // Page indicator: "2 / 5"
-                        Text(
-                            text = "${pagerState.currentPage + 1} / ${item.pages.size}",
-                            style = MaterialTheme.typography.labelMedium,
-                            modifier = Modifier
-                                .align(Alignment.CenterHorizontally)
-                                .padding(top = 8.dp)
-                        )
+                        if (item.pages.size > 1) {
+                            Text(
+                                text = "${pagerState.currentPage + 1} / ${item.pages.size}",
+                                style = MaterialTheme.typography.labelMedium,
+                                modifier = Modifier
+                                    .align(Alignment.CenterHorizontally)
+                                    .padding(top = 8.dp)
+                            )
+                        }
 
 
                         // Pager
@@ -195,11 +197,12 @@ fun ExpandableCard(
 
 
                                 // Page title
-                                Text(
-                                    text = page.title ?: "Untitled",
-                                    style = MaterialTheme.typography.titleMedium
-                                )
-
+                                page.title?.let {
+                                    Text(
+                                        text = page.title,
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
+                                }
                                 Spacer(modifier = Modifier.height(8.dp))
 
                                 // Page description/extract

@@ -27,7 +27,7 @@ fun OnThisDayForm(
     var expandedDay by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
-    val months = (1..12).map { it.toString().padStart(2, '0') }
+    val months = (1..12).map { it.toString() }
 
     // Dynamically compute number of days in selected month
     val days = remember(selectedMonth) {
@@ -37,7 +37,7 @@ fun OnThisDayForm(
         val daysInMonth = if (monthInt != null) {
             YearMonth.of(year, monthInt).lengthOfMonth()
         } else 31
-        (1..daysInMonth).map { it.toString().padStart(2, '0') }
+        (1..daysInMonth).map { it.toString() }
     }
 
     // Reset day if it exceeds new max
@@ -133,8 +133,8 @@ fun OnThisDayForm(
             Button(
                 onClick = {
                     val today = LocalDate.now()
-                    val month = today.monthValue.toString().padStart(2, '0')
-                    val day = today.dayOfMonth.toString().padStart(2, '0')
+                    val month = today.monthValue.toString()
+                    val day = today.dayOfMonth.toString()
                     selectedMonth = month
                     selectedDay = day
                 }
