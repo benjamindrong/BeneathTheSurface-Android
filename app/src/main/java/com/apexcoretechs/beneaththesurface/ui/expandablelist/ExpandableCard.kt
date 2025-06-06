@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -44,6 +45,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.window.Dialog
 import coil.compose.AsyncImage
@@ -75,9 +77,9 @@ fun ExpandableCard(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color.Transparent) // Ensure transparency is respected
+                .background(Color.Transparent)
         ) {
-            // 🔹 Overlay image (partially transparent background inside card)
+            // Overlay image
             Image(
                 painter = painterResource(id = R.drawable.result_overlay),
                 contentDescription = null,
@@ -87,7 +89,7 @@ fun ExpandableCard(
                     .matchParentSize()
             )
 
-            // 🔹 Card contents
+            // Card contents
             Column(modifier = Modifier.padding(16.dp)) {
                 // Header
                 Row(
@@ -122,13 +124,16 @@ fun ExpandableCard(
                             )
                         }
 
+//                        val screenWidth = LocalConfiguration.current.screenWidthDp.dp
+//                        val pagerHeight = screenWidth * 5 / 4
 
                         // Pager
                         HorizontalPager(
                             state = pagerState,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(300.dp)
+                                .wrapContentHeight()
+//                                .height(300.dp)
                                 .padding(vertical = 8.dp)
                         ) { pageIndex ->
                             val page = item.pages[pageIndex]
@@ -136,7 +141,7 @@ fun ExpandableCard(
                             Column(
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .verticalScroll(rememberScrollState())
+//                                    .verticalScroll(rememberScrollState())
                                     .padding(8.dp)
                             ) {
                                 var showFullScreen by remember { mutableStateOf(false) }
@@ -166,7 +171,7 @@ fun ExpandableCard(
                                     }
                                 }
 
-                                Spacer(modifier = Modifier.height(12.dp))
+//                                Spacer(modifier = Modifier.height(12.dp))
 
 // Fullscreen Dialog
                                 if (showFullScreen) {
@@ -197,13 +202,13 @@ fun ExpandableCard(
 
 
                                 // Page title
-                                page.title?.let {
-                                    Text(
-                                        text = page.title,
-                                        style = MaterialTheme.typography.titleMedium
-                                    )
-                                }
-                                Spacer(modifier = Modifier.height(8.dp))
+//                                page.title?.let {
+//                                    Text(
+//                                        text = page.title,
+//                                        style = MaterialTheme.typography.titleMedium
+//                                    )
+//                                }
+//                                Spacer(modifier = Modifier.height(8.dp))
 
                                 // Page description/extract
                                 Text(
@@ -214,26 +219,26 @@ fun ExpandableCard(
                         }
 
                         // Dot indicators
-                        Row(
-                            horizontalArrangement = Arrangement.Center,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 4.dp)
-                        ) {
-                            repeat(item.pages.size) { index ->
-                                val isSelected = pagerState.currentPage == index
-                                Box(
-                                    modifier = Modifier
-                                        .size(8.dp)
-                                        .padding(horizontal = 4.dp)
-                                        .background(
-                                            color = if (isSelected) MaterialTheme.colorScheme.primary
-                                            else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
-                                            shape = CircleShape
-                                        )
-                                )
-                            }
-                        }
+//                        Row(
+//                            horizontalArrangement = Arrangement.Center,
+//                            modifier = Modifier
+//                                .fillMaxWidth()
+//                                .padding(top = 4.dp)
+//                        ) {
+//                            repeat(item.pages.size) { index ->
+//                                val isSelected = pagerState.currentPage == index
+//                                Box(
+//                                    modifier = Modifier
+//                                        .size(8.dp)
+//                                        .padding(horizontal = 4.dp)
+//                                        .background(
+//                                            color = if (isSelected) MaterialTheme.colorScheme.primary
+//                                            else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
+//                                            shape = CircleShape
+//                                        )
+//                                )
+//                            }
+//                        }
                     }
                 }
             }
