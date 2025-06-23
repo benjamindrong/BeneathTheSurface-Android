@@ -4,9 +4,6 @@ import android.os.Bundle
 import android.view.ViewGroup
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,12 +12,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -68,13 +65,6 @@ fun CombinedHistoryScreen(viewModel: ExpandableListViewModel = viewModel()) {
             }
         )
 
-//        if (isWaiting)
-//            VideoLoadingIndicator(
-//                isLoading = isLoading,
-//                modifier = Modifier
-//                    .align(Alignment.CenterHorizontally)
-//                    .padding(16.dp)
-//            )
         VideoLoadingIndicator(
             isLoading = isLoading,
             modifier = Modifier
@@ -105,68 +95,63 @@ fun VideoLoadingIndicator(
     items: List<ExpandableItem>
 ) {
     val context = LocalContext.current
-    val playbackSpeed = 2.0f
     val player = remember {
         ExoPlayer.Builder(context).build().apply {
             val mediaItem = androidx.media3.common.MediaItem.Builder()
                 .setUri("android.resource://${context.packageName}/${R.raw.loading_animation}")
                 .build()
             setMediaItem(mediaItem)
-            repeatMode = Player.REPEAT_MODE_OFF
+            repeatMode = Player.REPEAT_MODE_ALL
             prepare()
-            setPlaybackSpeed(playbackSpeed)
         }
     }
 
     var showLoading by remember { mutableStateOf(false) }
-    val coroutineScope = rememberCoroutineScope()
 
-    // Phase 1: Show player paused if items are empty and loading hasn’t started yet
-    LaunchedEffect(items, isLoading) {
+    // Case 1: Initial empty state → Show paused frame
+    LaunchedEffect(isLoading, items) {
         if (items.isEmpty() && !isLoading) {
-            showLoading = true
             player.playWhenReady = false
-            player.seekTo(0) // Reset to start
-        }
-    }
-
-    // Phase 2: Start playing when loading begins
-    LaunchedEffect(isLoading) {
-        if (isLoading) {
+            player.setPlaybackSpeed(1.0f)
+            player.seekTo(0)
             showLoading = true
-            player.playWhenReady = false // Start as paused
-            player.seekTo(0) // Reset the player to the start
-            player.prepare()
-
-            // Wait until player is in the ready state before playing
-            while (player.playbackState != Player.STATE_READY) {
-                delay(50) // Check periodically if the player is ready
-            }
-
-            // Once ready, start playback
-            player.playWhenReady = true
         }
     }
 
-    // Phase 3: After loading ends, wait for animation duration and hide
-    LaunchedEffect(isLoading) {
+    // Case 2: Actively loading with no data → Play video, ramp speed
+    LaunchedEffect(isLoading, items) {
+        if (isLoading && items.isEmpty()) {
+            player.seekTo(0)
+            player.setPlaybackSpeed(1.0f)
+            player.playWhenReady = true
+            showLoading = true
+
+            // Ramp speed after 0.1s
+            delay(100)
+            player.setPlaybackSpeed(2.0f)
+        }
+    }
+
+    // Case 3: Data has arrived → Hide video
+    LaunchedEffect(isLoading, items) {
         if (!isLoading && items.isNotEmpty()) {
-            // Wait for the player to reach STATE_ENDED
-            while (player.playbackState != Player.STATE_ENDED) {
-                delay(50) // Wait until playback is finished
-            }
             player.playWhenReady = false
             showLoading = false
         }
     }
 
-    // Display the player view when showLoading is true
+    DisposableEffect(Unit) {
+        onDispose {
+            player.release()
+        }
+    }
+
     if (showLoading) {
         AndroidView(
             factory = {
                 PlayerView(context).apply {
-                    this.player = player
                     useController = false
+                    this.player = player
                     layoutParams = ViewGroup.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.WRAP_CONTENT
