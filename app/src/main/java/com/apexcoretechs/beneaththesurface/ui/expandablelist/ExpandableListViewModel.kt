@@ -13,9 +13,11 @@ import com.apexcoretechs.beneaththesurface.network.AIFormRepository
 import com.apexcoretechs.beneaththesurface.network.OnThisDayRepository
 import com.apexcoretechs.beneaththesurface.network.RetrofitInstance
 import kotlinx.coroutines.async
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.Json
 
 class ExpandableListViewModel : ViewModel() {
@@ -28,6 +30,16 @@ class ExpandableListViewModel : ViewModel() {
 
     private val _onThisDayData = MutableLiveData<OnThisDayData>()
     val onThisDayData: LiveData<OnThisDayData> = _onThisDayData
+
+    enum class LoadStatus {
+        IDLE, LOADING, SUCCESS, FAILED
+    }
+
+    private val _aiStatus = MutableStateFlow(LoadStatus.IDLE)
+    val aiStatus: StateFlow<LoadStatus> = _aiStatus
+
+    private val _historyStatus = MutableStateFlow(LoadStatus.IDLE)
+    val historyStatus: StateFlow<LoadStatus> = _historyStatus
 
     fun loadOnThisDayData(month: Int, day: Int) {
         viewModelScope.launch {
@@ -80,6 +92,9 @@ class ExpandableListViewModel : ViewModel() {
         viewModelScope.launch {
             _state.value = ExpandableListState(items = emptyList())
             _isLoading.value = true
+            _isWaiting.value = true
+            _aiStatus.value = LoadStatus.LOADING
+            _historyStatus.value = LoadStatus.LOADING
 
             val formattedDate = "$month/$day"
             val aiFormData = AIFormData(
@@ -106,8 +121,10 @@ class ExpandableListViewModel : ViewModel() {
                             )
                         )
                     )
+                    _aiStatus.value = LoadStatus.SUCCESS
                 } catch (e: Exception) {
                     Log.e("AIData", "Failed to fetch AI data", e)
+                    _aiStatus.value = LoadStatus.FAILED
                 }
             }
 
@@ -124,23 +141,52 @@ class ExpandableListViewModel : ViewModel() {
                             )
                         }
                     )
+                    _historyStatus.value = LoadStatus.SUCCESS
                 } catch (e: Exception) {
                     Log.e("OnThisDay", "Failed to fetch historical data", e)
+                    _historyStatus.value = LoadStatus.FAILED
                 }
             }
 
-            // Await both results
-            aiCall.await()
-            historyCall.await()
+            val completed = withTimeoutOrNull(10_000) {
+                aiCall.await()
+                historyCall.await()
+            }
 
-            // Combine with AI first
-            val combinedItems = mutableListOf<ExpandableItem>()
-            aiItem?.let { combinedItems.add(it) }
-            combinedItems.addAll(historyItems)
+            if (completed == null) {
+                // Timeout occurred
 
-            _state.value = ExpandableListState(items = combinedItems)
+                // Cancel remaining calls if they're still running
+                if (aiCall.isActive) {
+                    aiCall.cancelAndJoin()
+                    _aiStatus.value = LoadStatus.FAILED
+                }
+
+                if (historyCall.isActive) {
+                    historyCall.cancelAndJoin()
+                    _historyStatus.value = LoadStatus.FAILED
+                }
+
+                val combinedItems = mutableListOf<ExpandableItem>()
+                aiItem?.let { combinedItems.add(it) }
+                combinedItems.addAll(historyItems)
+
+                _state.value = ExpandableListState(
+                    items = combinedItems,
+                    isTimeout = combinedItems.isEmpty() // true only if both failed
+                )
+            } else {
+                // Both succeeded within timeout
+                val combinedItems = mutableListOf<ExpandableItem>()
+                aiItem?.let { combinedItems.add(it) }
+                combinedItems.addAll(historyItems)
+
+                _state.value = ExpandableListState(items = combinedItems)
+            }
+
             _isWaiting.value = false
             _isLoading.value = false
         }
     }
+
 }

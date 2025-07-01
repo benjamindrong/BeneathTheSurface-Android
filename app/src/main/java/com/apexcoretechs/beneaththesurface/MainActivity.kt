@@ -6,10 +6,16 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -31,6 +37,7 @@ import androidx.media3.ui.PlayerView
 import com.apexcoretechs.beneaththesurface.model.ExpandableItem
 import com.apexcoretechs.beneaththesurface.ui.expandablelist.ExpandableCard
 import com.apexcoretechs.beneaththesurface.ui.expandablelist.ExpandableListViewModel
+import com.apexcoretechs.beneaththesurface.ui.expandablelist.ExpandableListViewModel.LoadStatus
 import com.apexcoretechs.beneaththesurface.ui.onthisday.OnThisDayForm
 import com.apexcoretechs.beneaththesurface.ui.theme.BeneathTheSurfaceTheme
 import kotlinx.coroutines.delay
@@ -52,19 +59,30 @@ fun CombinedHistoryScreen(viewModel: ExpandableListViewModel = viewModel()) {
     val uiState by viewModel.state.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val isWaiting by viewModel.isWaiting.collectAsState()
+    val aiStatus by viewModel.aiStatus.collectAsState()
+    val historyStatus by viewModel.historyStatus.collectAsState()
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // Your existing form
+        // Top form
         OnThisDayForm(
             onSubmit = { day, month ->
                 viewModel.loadCombinedHistory(month, day)
             }
         )
 
+        StatusRow(
+            aiStatus = aiStatus,
+            historyStatus = historyStatus,
+            modifier = Modifier
+                .align(Alignment.CenterHorizontally)
+                .padding(top = 8.dp, bottom = 4.dp)
+        )
+
+        // Video loader animation
         VideoLoadingIndicator(
             isLoading = isLoading,
             modifier = Modifier
@@ -73,6 +91,7 @@ fun CombinedHistoryScreen(viewModel: ExpandableListViewModel = viewModel()) {
             items = uiState.items
         )
 
+        // List of expandable cards
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -160,5 +179,50 @@ fun VideoLoadingIndicator(
             },
             modifier = modifier
         )
+    }
+}
+
+@Composable
+fun StatusIndicator(label: String, status: LoadStatus) {
+    androidx.compose.foundation.layout.Row(verticalAlignment = Alignment.CenterVertically) {
+        androidx.compose.material3.Text(
+            text = label,
+            modifier = Modifier.padding(end = 4.dp)
+        )
+        when (status) {
+            LoadStatus.LOADING -> androidx.compose.material3.CircularProgressIndicator(
+                modifier = Modifier.size(16.dp),
+                strokeWidth = 2.dp
+            )
+            LoadStatus.SUCCESS -> androidx.compose.material3.Icon(
+                imageVector = androidx.compose.material.icons.Icons.Default.Check,
+                contentDescription = "Success",
+                tint = androidx.compose.material3.MaterialTheme.colorScheme.primary
+            )
+            LoadStatus.FAILED -> androidx.compose.material3.Icon(
+                imageVector = androidx.compose.material.icons.Icons.Default.Close,
+                contentDescription = "Failed",
+                tint = androidx.compose.material3.MaterialTheme.colorScheme.error
+            )
+            else -> androidx.compose.foundation.layout.Spacer(modifier = Modifier.size(16.dp))
+        }
+    }
+}
+
+
+@Composable
+fun StatusRow(
+    aiStatus: LoadStatus,
+    historyStatus: LoadStatus,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
+        StatusIndicator(label = "AI", status = aiStatus)
+        Spacer(modifier = Modifier.size(16.dp))
+        StatusIndicator(label = "History", status = historyStatus)
     }
 }
