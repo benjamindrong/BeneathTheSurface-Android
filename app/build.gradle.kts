@@ -67,6 +67,8 @@ dependencies {
     implementation(libs.gson)
     implementation(libs.coroutines.core)
     implementation(libs.coroutines.android)
+    implementation(libs.exoplayer.core)
+    implementation(libs.exoplayer.ui)
     testImplementation(libs.junit)
     testImplementation(libs.kotlin.test)
     testImplementation(libs.kotlinx.coroutines.test)

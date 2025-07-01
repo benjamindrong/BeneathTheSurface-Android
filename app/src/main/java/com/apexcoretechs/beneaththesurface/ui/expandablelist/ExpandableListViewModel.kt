@@ -13,9 +13,11 @@ import com.apexcoretechs.beneaththesurface.network.AIFormRepository
 import com.apexcoretechs.beneaththesurface.network.OnThisDayRepository
 import com.apexcoretechs.beneaththesurface.network.RetrofitInstance
 import kotlinx.coroutines.async
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.Json
 
 class ExpandableListViewModel : ViewModel() {
@@ -28,6 +30,16 @@ class ExpandableListViewModel : ViewModel() {
 
     private val _onThisDayData = MutableLiveData<OnThisDayData>()
     val onThisDayData: LiveData<OnThisDayData> = _onThisDayData
+
+    enum class LoadStatus {
+        IDLE, LOADING, SUCCESS, FAILED
+    }
+
+    private val _aiStatus = MutableStateFlow(LoadStatus.IDLE)
+    val aiStatus: StateFlow<LoadStatus> = _aiStatus
+
+    private val _historyStatus = MutableStateFlow(LoadStatus.IDLE)
+    val historyStatus: StateFlow<LoadStatus> = _historyStatus
 
     fun loadOnThisDayData(month: Int, day: Int) {
         viewModelScope.launch {
@@ -73,11 +85,18 @@ class ExpandableListViewModel : ViewModel() {
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
+    private val _isWaiting = MutableStateFlow(true)
+    val isWaiting: StateFlow<Boolean> = _isWaiting
+
     fun loadCombinedHistory(month: Int, day: Int) {
         viewModelScope.launch {
+            _state.value = ExpandableListState(items = emptyList())
             _isLoading.value = true
+            _isWaiting.value = true
+            _aiStatus.value = LoadStatus.LOADING
+            _historyStatus.value = LoadStatus.LOADING
 
-            val formattedDate = "${month.toString().padStart(2, '0')}/${day.toString().padStart(2, '0')}"
+            val formattedDate = "$month/$day"
             val aiFormData = AIFormData(
                 utcTimestamp = System.currentTimeMillis().toDouble(),
                 freeText = formattedDate,
@@ -99,12 +118,13 @@ class ExpandableListViewModel : ViewModel() {
                         pages = listOf(
                             Page(
                                 extract = chatCompletionData.choices.firstOrNull()?.message?.content ?: "No data",
-                                title = "AI Response"
                             )
                         )
                     )
+                    _aiStatus.value = LoadStatus.SUCCESS
                 } catch (e: Exception) {
                     Log.e("AIData", "Failed to fetch AI data", e)
+                    _aiStatus.value = LoadStatus.FAILED
                 }
             }
 
@@ -121,119 +141,51 @@ class ExpandableListViewModel : ViewModel() {
                             )
                         }
                     )
+                    _historyStatus.value = LoadStatus.SUCCESS
                 } catch (e: Exception) {
                     Log.e("OnThisDay", "Failed to fetch historical data", e)
+                    _historyStatus.value = LoadStatus.FAILED
                 }
             }
 
-            // Await both results
-            aiCall.await()
-            historyCall.await()
+            val completed = withTimeoutOrNull(10_000) {
+                aiCall.await()
+                historyCall.await()
+            }
 
-            // Combine with AI first
-            val combinedItems = mutableListOf<ExpandableItem>()
-            aiItem?.let { combinedItems.add(it) }
-            combinedItems.addAll(historyItems)
+            if (completed == null) {
+                // Timeout occurred
 
-            _state.value = ExpandableListState(items = combinedItems)
+                // Cancel remaining calls if they're still running
+                if (aiCall.isActive) {
+                    aiCall.cancelAndJoin()
+                    _aiStatus.value = LoadStatus.FAILED
+                }
+
+                if (historyCall.isActive) {
+                    historyCall.cancelAndJoin()
+                    _historyStatus.value = LoadStatus.FAILED
+                }
+
+                val combinedItems = mutableListOf<ExpandableItem>()
+                aiItem?.let { combinedItems.add(it) }
+                combinedItems.addAll(historyItems)
+
+                _state.value = ExpandableListState(
+                    items = combinedItems,
+                    isTimeout = combinedItems.isEmpty() // true only if both failed
+                )
+            } else {
+                // Both succeeded within timeout
+                val combinedItems = mutableListOf<ExpandableItem>()
+                aiItem?.let { combinedItems.add(it) }
+                combinedItems.addAll(historyItems)
+
+                _state.value = ExpandableListState(items = combinedItems)
+            }
+
+            _isWaiting.value = false
             _isLoading.value = false
-        }
-    }
-
-
-
-    /*fun loadCombinedHistory(month: Int, day: Int) {
-        viewModelScope.launch {
-            _isLoading.value = true
-            try {
-                val formattedDate = "${month.toString().padStart(2, '0')}/${day.toString().padStart(2, '0')}"
-
-                val aiFormData = AIFormData(
-                    utcTimestamp = System.currentTimeMillis().toDouble(),
-                    freeText = formattedDate,
-                    month = month,
-                    day = day,
-                    date = formattedDate,
-                    isFreeRide = true
-                )
-
-                // Make the API call (use your actual networking layer here)
-                val chatCompletionData = aiFormRepository.fetchOnThisDayData(aiFormData)
-
-                // Convert to ExpandableItem
-                val chatItem = ExpandableItem(
-                    title = "AI Insights",
-                    year = "", // Or parse from data if applicable
-                    pages = listOf(Page(extract = chatCompletionData.choices.firstOrNull()?.message?.content ?: "No data"))
-                )
-
-                // Get historical data too
-                val result = onThisDayRepository.fetchOnThisDayData(month, day)
-                _onThisDayData.value = result
-
-                val items = result.selected.map {
-                    ExpandableItem(
-                        title = it.text,
-                        year = it.year.toString(),
-                        pages = it.pages
-                    )
-                }
-
-                _state.value = ExpandableListState(items = listOf(chatItem) + items)
-
-            } catch (e: Exception) {
-                Log.e("loadCombinedHistory", "Error: ${e.localizedMessage}", e)
-            } finally {
-                _isLoading.value = false
-            }
-        }
-    }*/
-
-
-    fun loadHistoryWithAI(month: Int, day: Int) {
-        viewModelScope.launch {
-            try {
-                val onThisDayResult = onThisDayRepository.fetchOnThisDayData(month, day)
-
-                val freeTextFormatted = "${month.toString().padStart(2, '0')}/${day.toString().padStart(2, '0')}"
-                val aiForm = AIFormData(
-                    utcTimestamp = System.currentTimeMillis().toDouble(),
-                    date = freeTextFormatted,
-                    month = month,
-                    day = day,
-                    isFreeRide = true,
-                    freeText = freeTextFormatted
-                )
-
-                val chatResponse = RetrofitInstance.aiFormApi.submitForm(aiForm)
-
-                // Convert OnThisDayData to ExpandableItems
-                val historicalItems = onThisDayResult.selected.map {
-                    ExpandableItem(
-                        title = it.text,
-                        year = it.year.toString(),
-                        pages = it.pages
-                    )
-                }
-
-                // Convert ChatCompletionData to ExpandableItem
-                val aiItems = chatResponse.choices.map {
-                    ExpandableItem(
-                        title = "AI Insight",
-                        year = "", // optional
-                        pages = listOf(
-                            Page(
-                                extract = it.message.content,
-                                title = "AI Response"
-                            )
-                        )
-                    )
-                }
-
-                _state.value = ExpandableListState(items = historicalItems + aiItems)
-            } catch (e: Exception) {
-                Log.e("loadHistoryWithAI", "Failed to fetch or merge history", e)
-            }
         }
     }
 
